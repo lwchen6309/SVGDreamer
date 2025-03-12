@@ -33,10 +33,17 @@ def main(cfg: omegaconf.DictConfig):
 
     if not cfg.multirun:  # generate SVG multiple times
         pipe = SVGDreamerPipeline(cfg)
-        pipe.painterly_rendering(cfg.prompt)
+        target_file = cfg.get("target_file")
+        # pipe.painterly_rendering(cfg.prompt)
+        
+        if target_file:
+            pipe.painterly_rendering(cfg.prompt, target_file)
+        else:
+            pipe.painterly_rendering(cfg.prompt)  # Use painterly_rendering without target_file
+
     else:  # generate many SVG at once
         render_batch_fn(pipeline=SVGDreamerPipeline, text_prompt=cfg.prompt, target_file=None)
-
+        
 
 if __name__ == '__main__':
     main()

@@ -3,6 +3,9 @@
 # Author: XiMing Xing
 # Description:
 import torch
+import torch.nn.functional as F
+from svgdreamer.utils.composition_generator import generate_golden_spiral_image, generate_equal_lateral_triangle, \
+    generate_diagonal_line, generate_l_shape_line, gaussian_filter
 
 
 def channel_saturation_penalty_loss(x: torch.Tensor):
@@ -61,3 +64,42 @@ def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
         loss += templ * scale  # area_loss * scale
 
     return loss / (len(x_list))
+
+
+def composition_loss_fn(raster_imgs, blurred_golden_spiral):
+    """
+    Computes the Sobel edge of raster_imgs (applied to each channel separately) and calculates the dot product with
+    the blurred_golden_spiral along the spatial dimension using the mean.
+
+    Parameters:
+        raster_imgs (torch.Tensor): The input image tensor for edge detection.
+        blurred_golden_spiral (torch.Tensor): The blurred golden spiral tensor.
+
+    Returns:
+        torch.Tensor: The result of the mean dot product between the Sobel edge and the spiral.
+    """
+    # Automatically determine the device from raster_imgs
+    device = raster_imgs.device
+    raster_imgs = raster_imgs.mean(dim=1, keepdim=True)  # Average over the channels to get 1 channel
+
+    # 1. Compute Sobel edge for each channel separately
+    sobel_x = torch.tensor([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=raster_imgs.dtype, requires_grad=False).view(1, 1, 3, 3).to(device)
+    sobel_y = torch.tensor([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=raster_imgs.dtype, requires_grad=False).view(1, 1, 3, 3).to(device)
+
+    # Apply Sobel filters to each channel of raster_imgs (edge detection)
+    edges_x = F.conv2d(raster_imgs, sobel_x, padding=1, stride=1)  # Apply Sobel filter for x-direction
+    edges_y = F.conv2d(raster_imgs, sobel_y, padding=1, stride=1)  # Apply Sobel filter for y-direction
+
+    # Combine the edges (magnitude of the gradient)
+    edges = torch.sqrt(edges_x**2 + edges_y**2 + 1e-6)  # Add small epsilon to avoid sqrt(0)
+
+    # 2. Convert blurred_golden_spiral to the same dtype and device as raster_imgs
+    blurred_golden_spiral = blurred_golden_spiral.to(dtype=raster_imgs.dtype, device=device)
+    blurred_golden_spiral = F.interpolate(blurred_golden_spiral, size=raster_imgs.shape[-2:],
+                                            mode='bilinear', align_corners=False)
+
+    # 3. Compute the mean dot product along the spatial dimensions
+    dot_product = torch.mean(edges * blurred_golden_spiral)
+
+    # Return the computed dot product
+    return dot_product

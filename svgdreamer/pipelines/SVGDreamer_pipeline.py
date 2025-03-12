@@ -20,7 +20,7 @@ from torchvision import transforms
 from skimage.color import rgb2gray
 
 from svgdreamer.libs import ModelState, get_optimizer
-from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, Painter, PainterOptimizer, \
+from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, composition_loss_fn, Painter, PainterOptimizer, \
     CosineWithWarmupLRLambda, VectorizedParticleSDSPipeline, DiffusionPipeline
 from svgdreamer.token2attn.attn_control import EmptyControl, AttentionStore
 from svgdreamer.token2attn.ptp_utils import view_images
@@ -28,6 +28,9 @@ from svgdreamer.utils.plot import plot_img, plot_couple, plot_attn, save_image
 from svgdreamer.utils import init_tensor_with_color, AnyPath, mkdir
 from svgdreamer.svgtools import merge_svg_files, is_valid_svg
 from svgdreamer.diffusers_warp import model2res
+
+from svgdreamer.utils.composition_generator import generate_golden_spiral_image, generate_equal_lateral_triangle, \
+    generate_diagonal_line, generate_l_shape_line, gaussian_filter
 
 import ImageReward as RM
 
@@ -107,8 +110,10 @@ class SVGDreamerPipeline(ModelState):
             input_svg_path: AnyPath = None
             input_images = None
         elif target_file is not None:
+            target_file = pathlib.Path(target_file)
             # mode 2: load the SVG file and use VPSD finetune it (skip SIVE)
-            assert pathlib.Path(target_file).exists() and is_valid_svg(target_file)
+            # assert pathlib.Path(target_file).exists() and is_valid_svg(target_file)
+            assert target_file.exists()
             self.print(f"load svg from {target_file} ...")
             self.print(f"SVG fine-tuning via VPSD...")
             input_svg_path: AnyPath = target_file
@@ -539,6 +544,20 @@ class SVGDreamerPipeline(ModelState):
         self.print(f"-> Painter color Params: {len(renderers[0].get_color_parameters())}")
         self.print(f"-> Painter width Params: {len(renderers[0].get_width_parameters())}")
 
+        # Example usage of different shapes
+        golden_spiral_image = generate_golden_spiral_image(self.im_size)
+        triangle_image = generate_equal_lateral_triangle(self.im_size)
+        diagonal_line_image = generate_diagonal_line(self.im_size)
+        l_shape_image = generate_l_shape_line(self.im_size)
+        
+        # Apply Gaussian blur to the shapes
+        sigma = 50
+        blurred_golden_spiral = torch.tensor(gaussian_filter(golden_spiral_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        blurred_triangle = torch.tensor(gaussian_filter(triangle_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        blurred_diagonal_line = torch.tensor(gaussian_filter(diagonal_line_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        blurred_l_shape = torch.tensor(gaussian_filter(l_shape_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        comp_guidance = blurred_diagonal_line
+
         L_reward = torch.tensor(0.)
 
         self.step = 0  # reset global step
@@ -565,11 +584,15 @@ class SVGDreamerPipeline(ModelState):
 
                 # Xing Loss for Self-Interaction Problem
                 L_add = torch.tensor(0.)
-                if self.style == "iconography" or self.x_cfg.xing_loss.use:
+                if (self.style == "iconography" or self.x_cfg.xing_loss.use) and self.x_cfg.xing_loss.weight != 0.:
                     for r in renderers:
                         L_add += xing_loss_fn(r.get_point_parameters()) * self.x_cfg.xing_loss.weight
 
+                # Composition Control
+                # L_comp = composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance)            
+
                 loss = L_guide + L_add
+                # loss = L_guide + L_add + L_comp
 
                 # optimization
                 for opt_ in optimizers:
