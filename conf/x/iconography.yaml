@@ -132,10 +132,10 @@ vpsd_model_cfg:
 vpsd:
   use: True
   type: 'vpsd'
-  n_particle: 6 # 4, 8, 16
-  # n_particle: 1 # 4, 8, 16
-  vsd_n_particle: 4 # the batch size of particles
-  # vsd_n_particle: 1 # the batch size of particles
+  # n_particle: 6 # 4, 8, 16
+  n_particle: 1 # 4, 8, 16
+  # vsd_n_particle: 4 # the batch size of particles
+  vsd_n_particle: 1 # the batch size of particles
   particle_aug: False # do data enhancement for the input particles
   # num_iter: 2000 # total iterations
   num_iter: 500 # total iterations
@@ -156,8 +156,8 @@ vpsd:
   phi_update_step: 1 # enable multi-update phi model or not
   phi_lr: 0.0001 # learning rate of phi model
   phi_scheduler: 'ddim'
-  phi_n_particle: 2 # the batch size of phi_model
-  # phi_n_particle: 1 # the batch size of phi_model
+  # phi_n_particle: 2 # the batch size of phi_model
+  phi_n_particle: 1 # the batch size of phi_model
   # ReFL config
   phi_ReFL: False # enable reward feed back learning
   n_phi_sample: 1 # number of samples used in ReFL
