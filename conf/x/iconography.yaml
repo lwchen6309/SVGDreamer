@@ -186,3 +186,6 @@ reward_path: './checkpoint/ImageReward'
 xing_loss:
   use: False
   weight: 0.01
+
+composition_loss:
+  weight: 100.0

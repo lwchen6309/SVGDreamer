@@ -590,7 +590,7 @@ class SVGDreamerPipeline(ModelState):
 
                 # Composition Control
                 # L_comp = torch.tensor(0.)
-                L_comp = composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance)
+                L_comp = composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance) * self.x_cfg.composition_loss.weight
 
                 # loss = L_guide + L_add
                 loss = L_guide + L_add + L_comp
@@ -675,12 +675,12 @@ class SVGDreamerPipeline(ModelState):
                 pbar.set_description(
                     lr_str +
                     f"t: {t_step.item():.2f}, "
-                    f"L_total: {loss.item():.3f}, "
-                    f"L_add: {L_add.item():.3e}, "
-                    f"L_comp: {L_comp.item():.3e}, "
-                    f"L_lora: {L_lora.item():.3f}, "
-                    f"L_reward: {L_reward.item():.3f}, "
-                    f"grad: {grad.item():.3e}"
+                    f"L_total: {loss.item():.2f}, "
+                    f"L_add: {L_add.item():.2e}, "
+                    f"L_comp: {L_comp.item():.2e}, "
+                    f"L_lora: {L_lora.item():.2e}, "
+                    f"L_reward: {L_reward.item():.2e}, "
+                    f"grad: {grad.item():.2e}"
                 )
 
                 if self.step % self.args.save_step == 0 and self.accelerator.is_main_process:
