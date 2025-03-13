@@ -589,9 +589,10 @@ class SVGDreamerPipeline(ModelState):
                         L_add += xing_loss_fn(r.get_point_parameters()) * self.x_cfg.xing_loss.weight
 
                 # Composition Control
-                # L_comp = torch.tensor(0.)
-                L_comp = composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance) * self.x_cfg.composition_loss.weight
-
+                L_comp = torch.tensor(0., device=raster_imgs.device)  # Initialize on the same device
+                if self.x_cfg.composition_loss.weight != 0.:
+                    L_comp += composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance) * self.x_cfg.composition_loss.weight
+                
                 # loss = L_guide + L_add
                 loss = L_guide + L_add + L_comp
 
