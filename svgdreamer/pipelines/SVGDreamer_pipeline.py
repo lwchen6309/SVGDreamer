@@ -668,10 +668,10 @@ class SVGDreamerPipeline(ModelState):
                 # log pretrained model lr
                 lr_str = ""
                 for k, lr in optimizers[0].get_lr().items():
-                    lr_str += f"{k}_lr: {lr:.4f}, "
+                    lr_str += f"{k}_lr: {lr:.2e}, "
                 # log phi model lr
                 cur_phi_lr = phi_optimizer.param_groups[0]['lr']
-                lr_str += f"phi_lr: {cur_phi_lr:.3e}, "
+                lr_str += f"phi_lr: {cur_phi_lr:.2e}, "
 
                 pbar.set_description(
                     lr_str +
@@ -679,9 +679,9 @@ class SVGDreamerPipeline(ModelState):
                     f"L_total: {loss.item():.2f}, "
                     f"L_add: {L_add.item():.2e}, "
                     f"L_comp: {L_comp.item():.2e}, "
-                    f"L_lora: {L_lora.item():.2e}, "
-                    f"L_reward: {L_reward.item():.2e}, "
-                    f"grad: {grad.item():.2e}"
+                    # f"L_lora: {L_lora.item():.2e}, "
+                    # f"L_reward: {L_reward.item():.2e}, "
+                    # f"grad: {grad.item():.2e}"
                 )
 
                 if self.step % self.args.save_step == 0 and self.accelerator.is_main_process:

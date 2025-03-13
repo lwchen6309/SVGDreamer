@@ -99,7 +99,7 @@ def composition_loss_fn(images, composition_attention):
                                             mode='bilinear', align_corners=False)
 
     # 3. Compute the mean dot product along the spatial dimensions
-    dot_product = torch.mean(edges * composition_attention)
+    dot_product = -torch.mean(edges * composition_attention)
 
     # Return the computed dot product
     return dot_product
