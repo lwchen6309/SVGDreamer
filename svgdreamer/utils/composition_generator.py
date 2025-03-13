@@ -173,7 +173,7 @@ if __name__ == '__main__':
     l_shape_image = generate_l_shape_line()
 
     # Apply Gaussian blur to the shapes
-    sigma = 50
+    sigma = 50.
     blurred_golden_spiral = gaussian_filter(golden_spiral_image, sigma=sigma)
     blurred_triangle = gaussian_filter(triangle_image, sigma=sigma)
     blurred_diagonal_line = gaussian_filter(diagonal_line_image, sigma=sigma)

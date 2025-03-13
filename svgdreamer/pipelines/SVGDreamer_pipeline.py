@@ -551,12 +551,12 @@ class SVGDreamerPipeline(ModelState):
         l_shape_image = generate_l_shape_line(self.im_size)
         
         # Apply Gaussian blur to the shapes
-        sigma = 50
+        sigma = self.x_cfg.composition_loss.sigma
         blurred_golden_spiral = torch.tensor(gaussian_filter(golden_spiral_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
         blurred_triangle = torch.tensor(gaussian_filter(triangle_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
         blurred_diagonal_line = torch.tensor(gaussian_filter(diagonal_line_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
         blurred_l_shape = torch.tensor(gaussian_filter(l_shape_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
-        comp_guidance = blurred_diagonal_line
+        comp_guidance = blurred_golden_spiral
 
         L_reward = torch.tensor(0.)
 
