@@ -189,5 +189,5 @@ xing_loss:
 
 composition_loss:
   composition_type: 'golden_spiral' # 'golden_spiral', 'pyramid', 'diagonal', 'l_shape'
-  weight: 100.0
+  weight: 1.0
   sigma: 50.0

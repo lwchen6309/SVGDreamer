@@ -92,14 +92,19 @@ def composition_loss_fn(images, composition_attention):
 
     # Combine the edges (magnitude of the gradient)
     edges = torch.sqrt(edges_x**2 + edges_y**2 + 1e-6)  # Add small epsilon to avoid sqrt(0)
+    max_vals = edges.max(dim=2, keepdim=True)[0].max(dim=3, keepdim=True)[0]
+    edges = edges / max_vals  # Normalize the edges
 
     # 2. Convert composition_attention to the same dtype and device as images
     composition_attention = composition_attention.to(dtype=images.dtype, device=device)
     composition_attention = F.interpolate(composition_attention, size=images.shape[-2:],
                                             mode='bilinear', align_corners=False)
-
+    # Normalize the composition_attention
+    max_vals = composition_attention.max(dim=2, keepdim=True)[0].max(dim=3, keepdim=True)[0]
+    composition_attention = composition_attention / max_vals
+    
     # 3. Compute the mean dot product along the spatial dimensions
     dot_product = -torch.mean(edges * composition_attention)
-
+    
     # Return the computed dot product
     return dot_product
