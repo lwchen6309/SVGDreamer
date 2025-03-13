@@ -552,11 +552,18 @@ class SVGDreamerPipeline(ModelState):
         
         # Apply Gaussian blur to the shapes
         sigma = self.x_cfg.composition_loss.sigma
-        blurred_golden_spiral = torch.tensor(gaussian_filter(golden_spiral_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
-        blurred_triangle = torch.tensor(gaussian_filter(triangle_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
-        blurred_diagonal_line = torch.tensor(gaussian_filter(diagonal_line_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
-        blurred_l_shape = torch.tensor(gaussian_filter(l_shape_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
-        comp_guidance = blurred_golden_spiral
+        composition_type = self.x_cfg.composition_loss.composition_type
+        if composition_type == 'golden_spiral':
+            comp_guidance = torch.tensor(gaussian_filter(golden_spiral_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        elif composition_type == 'pyramid':
+            comp_guidance = torch.tensor(gaussian_filter(triangle_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        elif composition_type == 'diagonal':
+            comp_guidance = torch.tensor(gaussian_filter(diagonal_line_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)        
+        elif composition_type == 'l_shape':
+            comp_guidance = torch.tensor(gaussian_filter(l_shape_image, sigma=sigma), requires_grad=False).unsqueeze(0).unsqueeze(0)
+        else:
+            comp_guidance = None
+            raise NotImplementedError(f"Composition type {composition_type} is not implemented.")
 
         L_reward = torch.tensor(0.)
 
