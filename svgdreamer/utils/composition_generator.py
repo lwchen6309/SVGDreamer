@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from math import sqrt
 from scipy.ndimage import gaussian_filter
+from PIL import Image
+
 
 def generate_golden_spiral_image(size=600, num_arcs=10, dpi=300):
     """
@@ -54,6 +56,7 @@ def generate_golden_spiral_image(size=600, num_arcs=10, dpi=300):
 
     # Convert to numpy array and extract grayscale (R channel) for heatmap
     image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0  # Extract the R channel for grayscale
+    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
 
     plt.close(fig)  # Close the figure to free memory
 
@@ -95,6 +98,7 @@ def generate_equal_lateral_triangle(size=600, dpi=300):
 
     # Convert to numpy array and extract grayscale (R channel)
     image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
+    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
 
     plt.close(fig)
 
@@ -126,7 +130,7 @@ def generate_diagonal_line(size=600, dpi=300):
 
     # Convert to numpy array and extract grayscale (R channel)
     image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
-
+    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
     plt.close(fig)
 
     return image_array
@@ -158,7 +162,7 @@ def generate_l_shape_line(size=600, dpi=300):
 
     # Convert to numpy array and extract grayscale (R channel)
     image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
-    
+    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
 
     plt.close(fig)
 
@@ -173,7 +177,7 @@ if __name__ == '__main__':
     l_shape_image = generate_l_shape_line()
 
     # Apply Gaussian blur to the shapes
-    sigma = 50.
+    sigma = 25.
     blurred_golden_spiral = gaussian_filter(golden_spiral_image, sigma=sigma)
     blurred_triangle = gaussian_filter(triangle_image, sigma=sigma)
     blurred_diagonal_line = gaussian_filter(diagonal_line_image, sigma=sigma)
@@ -182,49 +186,56 @@ if __name__ == '__main__':
     # Plot the shapes and their blurred versions
     plt.figure(figsize=(12, 8))
 
-    # Original and blurred golden spiral
-    plt.subplot(4, 2, 1)
-    plt.imshow(golden_spiral_image, cmap="hot")
-    plt.title("Golden Spiral")
-    plt.axis("off")
+    # Function to add a bounding box and hide ticks
+    def add_bounding_box(ax):
+        ax.set_xticks([])  # Remove x ticks
+        ax.set_yticks([])  # Remove y ticks
+        rect = plt.Rectangle((0, 0), 1, 1, linewidth=2, edgecolor='black', facecolor='none', linestyle='--')
+        ax.add_patch(rect)
 
-    plt.subplot(4, 2, 2)
-    plt.imshow(blurred_golden_spiral, cmap="hot")
-    plt.title("Blurred Golden Spiral")
-    plt.axis("off")
+    # Original and blurred golden spiral
+    ax1 = plt.subplot(4, 2, 1)
+    ax1.imshow(golden_spiral_image, cmap="hot")
+    ax1.set_title("Golden Spiral")
+    add_bounding_box(ax1)
+
+    ax2 = plt.subplot(4, 2, 2)
+    ax2.imshow(blurred_golden_spiral, cmap="hot")
+    ax2.set_title("Blurred Golden Spiral")
+    add_bounding_box(ax2)
 
     # Original and blurred triangle
-    plt.subplot(4, 2, 3)
-    plt.imshow(triangle_image, cmap="hot")
-    plt.title("Equilateral Triangle")
-    plt.axis("off")
+    ax3 = plt.subplot(4, 2, 3)
+    ax3.imshow(triangle_image, cmap="hot")
+    ax3.set_title("Equilateral Triangle")
+    add_bounding_box(ax3)
 
-    plt.subplot(4, 2, 4)
-    plt.imshow(blurred_triangle, cmap="hot")
-    plt.title("Blurred Triangle")
-    plt.axis("off")
+    ax4 = plt.subplot(4, 2, 4)
+    ax4.imshow(blurred_triangle, cmap="hot")
+    ax4.set_title("Blurred Triangle")
+    add_bounding_box(ax4)
 
     # Original and blurred diagonal line
-    plt.subplot(4, 2, 5)
-    plt.imshow(diagonal_line_image, cmap="hot")
-    plt.title("Diagonal Line")
-    plt.axis("off")
+    ax5 = plt.subplot(4, 2, 5)
+    ax5.imshow(diagonal_line_image, cmap="hot")
+    ax5.set_title("Diagonal Line")
+    add_bounding_box(ax5)
 
-    plt.subplot(4, 2, 6)
-    plt.imshow(blurred_diagonal_line, cmap="hot")
-    plt.title("Blurred Diagonal Line")
-    plt.axis("off")
+    ax6 = plt.subplot(4, 2, 6)
+    ax6.imshow(blurred_diagonal_line, cmap="hot")
+    ax6.set_title("Blurred Diagonal Line")
+    add_bounding_box(ax6)
 
     # Original and blurred L-shape line
-    plt.subplot(4, 2, 7)
-    plt.imshow(l_shape_image, cmap="hot")
-    plt.title("L-shape Line")
-    plt.axis("off")
+    ax7 = plt.subplot(4, 2, 7)
+    ax7.imshow(l_shape_image, cmap="hot")
+    ax7.set_title("L-shape Line")
+    add_bounding_box(ax7)
 
-    plt.subplot(4, 2, 8)
-    plt.imshow(blurred_l_shape, cmap="hot")
-    plt.title("Blurred L-shape Line")
-    plt.axis("off")
+    ax8 = plt.subplot(4, 2, 8)
+    ax8.imshow(blurred_l_shape, cmap="hot")
+    ax8.set_title("Blurred L-shape Line")
+    add_bounding_box(ax8)
 
     plt.tight_layout()
     # plt.show()
