@@ -5,6 +5,14 @@ from scipy.ndimage import gaussian_filter
 from PIL import Image
 
 
+def formatter(fig, size):
+    # Convert to numpy array and extract grayscale for heatmap
+    image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0  # Extract the R channel for grayscale
+    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
+    image_array = (1 - image_array) * 255
+    image_array = image_array / 255.0
+    return image_array
+
 def generate_golden_spiral_image(size=600, num_arcs=10, dpi=300):
     """
     Generates an image of the golden spiral and returns it as a NumPy ndarray in grayscale.
@@ -53,13 +61,8 @@ def generate_golden_spiral_image(size=600, num_arcs=10, dpi=300):
 
     # Render figure to buffer
     fig.canvas.draw()
-
-    # Convert to numpy array and extract grayscale (R channel) for heatmap
-    image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0  # Extract the R channel for grayscale
-    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
-
-    plt.close(fig)  # Close the figure to free memory
-
+    image_array = formatter(fig, size)
+    plt.close(fig)
     return image_array
 
 def generate_equal_lateral_triangle(size=600, dpi=300):
@@ -95,11 +98,7 @@ def generate_equal_lateral_triangle(size=600, dpi=300):
 
     # Render figure to buffer
     fig.canvas.draw()
-
-    # Convert to numpy array and extract grayscale (R channel)
-    image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
-    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
-
+    image_array = formatter(fig, size)
     plt.close(fig)
 
     return image_array
@@ -127,10 +126,7 @@ def generate_diagonal_line(size=600, dpi=300):
 
     # Render figure to buffer
     fig.canvas.draw()
-
-    # Convert to numpy array and extract grayscale (R channel)
-    image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
-    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
+    image_array = formatter(fig, size)
     plt.close(fig)
 
     return image_array
@@ -159,11 +155,7 @@ def generate_l_shape_line(size=600, dpi=300):
 
     # Render figure to buffer
     fig.canvas.draw()
-
-    # Convert to numpy array and extract grayscale (R channel)
-    image_array = np.array(fig.canvas.renderer.buffer_rgba())[:, :, :3].mean(-1).astype(float) / 255.0
-    image_array = np.array(Image.fromarray(image_array).resize((size, size), Image.NEAREST))
-
+    image_array = formatter(fig, size)
     plt.close(fig)
 
     return image_array
@@ -177,7 +169,7 @@ if __name__ == '__main__':
     l_shape_image = generate_l_shape_line()
 
     # Apply Gaussian blur to the shapes
-    sigma = 25.
+    sigma = 50.
     blurred_golden_spiral = gaussian_filter(golden_spiral_image, sigma=sigma)
     blurred_triangle = gaussian_filter(triangle_image, sigma=sigma)
     blurred_diagonal_line = gaussian_filter(diagonal_line_image, sigma=sigma)

@@ -4,8 +4,6 @@
 # Description:
 import torch
 import torch.nn.functional as F
-from svgdreamer.utils.composition_generator import generate_golden_spiral_image, generate_equal_lateral_triangle, \
-    generate_diagonal_line, generate_l_shape_line, gaussian_filter
 
 
 def channel_saturation_penalty_loss(x: torch.Tensor):
@@ -89,7 +87,7 @@ def composition_loss_fn(images, composition_attention):
     # Apply Sobel filters to each channel of images (edge detection)
     edges_x = F.conv2d(images, sobel_x, padding=1, stride=1)  # Apply Sobel filter for x-direction
     edges_y = F.conv2d(images, sobel_y, padding=1, stride=1)  # Apply Sobel filter for y-direction
-
+    
     # Combine the edges (magnitude of the gradient)
     edges = torch.sqrt(edges_x**2 + edges_y**2 + 1e-6)  # Add small epsilon to avoid sqrt(0)
     max_vals = edges.max(dim=2, keepdim=True)[0].max(dim=3, keepdim=True)[0]
