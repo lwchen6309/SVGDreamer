@@ -80,7 +80,7 @@ if __name__ == '__main__':
         for j in range(4):
             axes[i, j].axis('off')
             if i == 0:
-                axes[i, j].set_title(titles[j], fontsize=16)
+                axes[i, j].set_title(titles[j], fontsize=30)
     
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, "edges_comparison.png"))
