@@ -41,8 +41,7 @@ if __name__ == '__main__':
         "l_shape": generate_l_shape_line()
     }
     
-    # image_paths = glob.glob("logs/great_wall/sigma_25/SVGDreamer-*/sd*/all_particles.png")
-    image_paths = glob.glob("logs/great_wall/iter_2000/SVGDreamer-*/sd*/all_particles.png")
+    image_paths = glob.glob("logs/great_wall/sigma_50/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     
     experiments = []
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     num_experiments = len(experiments)
     fig, axes = plt.subplots(num_experiments, 4, figsize=(20, 5 * num_experiments))
     
-    titles = ["All Particles", "Edges", "Attention", "Attn Weighted Edge"]
+    titles = ["Images", "Edges", "Attention", "Attn Weighted Edge"]
     
     for i, (composition_type, sigma, image_path) in enumerate(experiments):
         image = Image.open(image_path).convert('RGB')
