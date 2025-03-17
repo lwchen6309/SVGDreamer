@@ -20,7 +20,7 @@ from torchvision import transforms
 from skimage.color import rgb2gray
 
 from svgdreamer.libs import ModelState, get_optimizer
-from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, composition_loss_fn, Painter, PainterOptimizer, \
+from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, composition_loss_fn, sam_composition_loss_fn, Painter, PainterOptimizer, \
     CosineWithWarmupLRLambda, VectorizedParticleSDSPipeline, DiffusionPipeline
 from svgdreamer.token2attn.attn_control import EmptyControl, AttentionStore
 from svgdreamer.token2attn.ptp_utils import view_images
@@ -31,6 +31,7 @@ from svgdreamer.diffusers_warp import model2res
 
 from svgdreamer.utils.composition_generator import generate_golden_spiral_image, generate_equal_lateral_triangle, \
     generate_diagonal_line, generate_l_shape_line, gaussian_filter
+from transformers import SamModel, SamProcessor
 
 import ImageReward as RM
 
@@ -565,6 +566,11 @@ class SVGDreamerPipeline(ModelState):
             comp_guidance = None
             raise NotImplementedError(f"Composition type {composition_type} is not implemented.")
 
+        model_name = "facebook/sam-vit-large"
+        sam_model = SamModel.from_pretrained(model_name).to(self.device)
+        sam_processor = SamProcessor.from_pretrained(model_name)
+
+
         L_reward = torch.tensor(0.)
 
         self.step = 0  # reset global step
@@ -596,12 +602,18 @@ class SVGDreamerPipeline(ModelState):
                         L_add += xing_loss_fn(r.get_point_parameters()) * self.x_cfg.xing_loss.weight
 
                 # Composition Control
-                L_comp = torch.tensor(0., device=raster_imgs.device)  # Initialize on the same device
+                L_comp = torch.tensor(0., device=self.device)  # Initialize on the same device
                 if self.x_cfg.composition_loss.weight != 0.:
                     L_comp += composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance) * self.x_cfg.composition_loss.weight
+
+                L_comp_sam = torch.tensor(0., device=self.device)  # Initialize on the same device
+                if self.x_cfg.sam_composition_loss.weight != 0.:
+                    L_comp_sam += sam_composition_loss_fn(raster_imgs.to(self.weight_dtype), comp_guidance, 
+                                sam_model, sam_processor, kernel_size=self.x_cfg.sam_composition_loss.kernel_size, 
+                                sigma=self.x_cfg.sam_composition_loss.sigma) * self.x_cfg.sam_composition_loss.weight
                 
                 # loss = L_guide + L_add
-                loss = L_guide + L_add + L_comp
+                loss = L_guide + L_add + L_comp + L_comp_sam
 
                 # optimization
                 for opt_ in optimizers:
@@ -674,11 +686,11 @@ class SVGDreamerPipeline(ModelState):
 
                 # log pretrained model lr
                 lr_str = ""
-                for k, lr in optimizers[0].get_lr().items():
-                    lr_str += f"{k}_lr: {lr:.2e}, "
-                # log phi model lr
-                cur_phi_lr = phi_optimizer.param_groups[0]['lr']
-                lr_str += f"phi_lr: {cur_phi_lr:.2e}, "
+                # for k, lr in optimizers[0].get_lr().items():
+                #     lr_str += f"{k}_lr: {lr:.2e}, "
+                # # log phi model lr
+                # cur_phi_lr = phi_optimizer.param_groups[0]['lr']
+                # lr_str += f"phi_lr: {cur_phi_lr:.2e}, "
 
                 pbar.set_description(
                     lr_str +
@@ -686,6 +698,7 @@ class SVGDreamerPipeline(ModelState):
                     f"L_total: {loss.item():.2f}, "
                     f"L_add: {L_add.item():.2e}, "
                     f"L_comp: {L_comp.item():.2e}, "
+                    f"L_comp_sam: {L_comp_sam.item():.2e}, "
                     # f"L_lora: {L_lora.item():.2e}, "
                     # f"L_reward: {L_reward.item():.2e}, "
                     # f"grad: {grad.item():.2e}"

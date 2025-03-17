@@ -4,6 +4,7 @@
 # Description:
 import torch
 import torch.nn.functional as F
+from svgdreamer.utils.sobel_edge import apply_sobel_to_masks
 
 
 def channel_saturation_penalty_loss(x: torch.Tensor):
@@ -105,4 +106,59 @@ def composition_loss_fn(images, composition_attention):
     dot_product = -torch.mean(edges * composition_attention)
     
     # Return the computed dot product
+    return dot_product
+
+
+def sam_composition_loss_fn(images, composition_attention, model, processor, input_points=None, kernel_size=None, sigma=5.0):
+    """
+    Computes the Sobel edge of SAM prediction masks and calculates the dot product with
+    the composition_attention along the spatial dimension using the mean.
+
+    Parameters:
+        images (torch.Tensor): The input image tensor for edge detection (used to calculate composition_attention).
+        composition_attention (torch.Tensor): The blurred golden spiral tensor.
+        model (SamModel): The SAM model used for segmentation.
+        processor (SamProcessor): The processor used to pre-process the image for SAM.
+        input_points (list): The list of input points for SAM segmentation.
+
+    Returns:
+        torch.Tensor: The result of the mean dot product between the Sobel edge and the spiral.
+    """
+    # Automatically determine the device from images
+    device = images.device
+
+    # 1. Process the image with SAM model to get segmentation mask
+    inputs = processor(images=images, input_points=input_points, return_tensors="pt").to(device)
+
+    # Get segmentation map using SAM model
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Post-process the mask (resize it to the original image size)
+    masks = processor.image_processor.post_process_masks(
+        outputs.pred_masks, inputs["original_sizes"], inputs["reshaped_input_sizes"]
+    )
+
+    # Get the segmentation mask by applying argmax across the class dimension
+    segmentation_map = masks[0]  # Shape: [1, C, H, W]
+
+    # 2. Compute Sobel edge for the segmentation map
+    sobel_masks = apply_sobel_to_masks(segmentation_map.type(torch.float), kernel_size=kernel_size, sigma=sigma).mean(dim=1, keepdim=True)
+    
+    # 3. Normalize Sobel edges (as done with the image edges)
+    max_vals = sobel_masks.max(dim=2, keepdim=True)[0].max(dim=3, keepdim=True)[0]
+    sobel_masks = sobel_masks / max_vals  # Normalize the Sobel mask
+
+    # 4. Convert composition_attention to the same dtype and device as images
+    composition_attention = composition_attention.to(dtype=images.dtype, device=device)
+    composition_attention = F.interpolate(composition_attention, size=images.shape[-2:], mode='bilinear', align_corners=False)
+
+    # Normalize the composition_attention
+    max_vals = composition_attention.max(dim=2, keepdim=True)[0].max(dim=3, keepdim=True)[0]
+    composition_attention = composition_attention / max_vals
+
+    # 5. Compute the mean dot product along the spatial dimensions
+    dot_product = -torch.mean(sobel_masks * composition_attention)
+
+    # Return the computed dot product as the loss
     return dot_product
