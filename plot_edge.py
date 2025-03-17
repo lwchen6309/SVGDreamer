@@ -21,27 +21,29 @@ def compute_edges(images):
     edges = edges.repeat(1, 3, 1, 1)
     return transforms.ToPILImage()(edges[0].cpu())
 
+composition_type_map = {
+    "golden_spiral": generate_golden_spiral_image,
+    "pyramid": generate_equal_lateral_triangle,
+    "diagonal": generate_diagonal_line,
+    "l_shape": generate_l_shape_line
+}
+
 def apply_attention(edges, composition_type, sigma, images):
     """Apply attention filter to edges based on composition type and sigma."""
-    attention = torch.tensor(gaussian_filter(composition_type_map[composition_type], sigma=sigma))
+    target_comp = composition_type_map[composition_type]()
+    attention = torch.tensor(gaussian_filter(target_comp, sigma=sigma))
     attention = attention.unsqueeze(0).unsqueeze(0).to(dtype=images.dtype, device=images.device)
     attention = F.interpolate(attention, size=images.shape[-2:], mode='bilinear', align_corners=False)
     attention = attention / attention.max()
     attention_weighted_edge = attention * transforms.ToTensor()(edges).to(attention.device)
     return transforms.ToPILImage()(attention_weighted_edge.squeeze(0).cpu()), transforms.ToPILImage()(attention.squeeze(0).cpu())
 
+
 if __name__ == '__main__':
     output_dir = "edge_results"
     os.makedirs(output_dir, exist_ok=True)
 
-    composition_type_map = {
-        "golden_spiral": generate_golden_spiral_image(),
-        "pyramid": generate_equal_lateral_triangle(),
-        "diagonal": generate_diagonal_line(),
-        "l_shape": generate_l_shape_line()
-    }
-    
-    image_paths = glob.glob("logs/great_wall/sigma_50/SVGDreamer-*/sd*/all_particles.png")
+    image_paths = glob.glob("logs/great_wall/sigma_75/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     
     experiments = []
