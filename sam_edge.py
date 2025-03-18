@@ -16,7 +16,7 @@ def apply_sobel(image):
 def pil_to_tensor(pil_img):
     return transforms.ToTensor()(pil_img).unsqueeze(0)  # Convert to [1, C, H, W]
 
-def infer_sam_edge(images, model, processor, device, input_points = None, kernel_size=None, sigma=5.0):    
+def infer_sam_edge(images, model, processor, device, input_points = None, kernel_size=11, sigma=5.0):
     # Process the image and input points
     inputs = processor(images=images, input_points=input_points, return_tensors="pt").to(device)
     

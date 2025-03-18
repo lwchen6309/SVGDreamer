@@ -49,7 +49,7 @@ if __name__ == '__main__':
     output_dir = "edge_results"
     os.makedirs(output_dir, exist_ok=True)
 
-    subdir = 'sam_edge_sigma_50'
+    subdir = 'sigma_75'
     image_paths = glob.glob(f"logs/great_wall/{subdir}/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     save_fig = False
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     
     experiments.sort(key=lambda x: sorted_composition_types.index(x[0]))
     num_experiments = len(experiments)
-    fig, axes = plt.subplots(num_experiments, 6, figsize=(20, 5 * num_experiments))
+    fig, axes = plt.subplots(num_experiments, 6, figsize=(20, 3.5 * num_experiments))
     
     for i, (composition_type, sigma, image_path) in enumerate(experiments):
         image = Image.open(image_path).convert('RGB')
@@ -106,9 +106,9 @@ if __name__ == '__main__':
         axes[i, 1].imshow(attention_map[0,0].cpu(), cmap='grey')
         axes[i, 2].imshow(edge[0,0].cpu(), cmap='grey')
         axes[i, 3].imshow(attention_weighted_edge[0,0].cpu(), cmap='grey')
-        axes[i, 4].imshow(sam_edge[0,0].cpu()*100, cmap='viridis')
+        axes[i, 4].imshow(sam_edge[0,0].cpu()*1e3, cmap='viridis')
         axes[i, 5].imshow(attention_weighted_sam_edge[0,0].cpu(), cmap='viridis')
-        titles = ["Images", "Attn", "Edges", "Attn WEdge", "SAM Edge", "Attn WSAMEdge"]
+        titles = ["Images", "Attn", "Edges", "AttnW Edge", "SAM Edge", "AttnW SAM Edge"]
         for j, title in enumerate(titles):
             axes[i, j].axis('off')
             if i == 0:
