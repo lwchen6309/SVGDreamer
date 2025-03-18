@@ -43,7 +43,8 @@ if __name__ == '__main__':
     output_dir = "edge_results"
     os.makedirs(output_dir, exist_ok=True)
 
-    image_paths = glob.glob("logs/great_wall/sigma_75/SVGDreamer-*/sd*/all_particles.png")
+    subdir = 'sam_edge'
+    image_paths = glob.glob(f"logs/great_wall/{subdir}/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     
     experiments = []

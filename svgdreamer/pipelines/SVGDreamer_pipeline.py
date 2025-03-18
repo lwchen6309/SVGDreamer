@@ -600,7 +600,7 @@ class SVGDreamerPipeline(ModelState):
                 if (self.style == "iconography" or self.x_cfg.xing_loss.use) and self.x_cfg.xing_loss.weight != 0.:
                     for r in renderers:
                         L_add += xing_loss_fn(r.get_point_parameters()) * self.x_cfg.xing_loss.weight
-
+                
                 # Composition Control
                 L_comp = torch.tensor(0., device=self.device)  # Initialize on the same device
                 if self.x_cfg.composition_loss.weight != 0.:
