@@ -16,6 +16,25 @@ def apply_sobel(image):
 def pil_to_tensor(pil_img):
     return transforms.ToTensor()(pil_img).unsqueeze(0)  # Convert to [1, C, H, W]
 
+def infer_sam_edge(images, model, processor, device, input_points = None, kernel_size=None, sigma=5.0):    
+    # Process the image and input points
+    inputs = processor(images=images, input_points=input_points, return_tensors="pt").to(device)
+    
+    # Get segmentation map using SAM model
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Post-process the mask (resize it to the original image size)
+    masks = processor.image_processor.post_process_masks(
+        outputs.pred_masks, inputs["original_sizes"], inputs["reshaped_input_sizes"]
+    )
+
+    # Get the segmentation mask by applying argmax across the class dimension
+    segmentation_map = masks[0].cpu()  # Shape: [1, C, H, W]
+    sobel_masks = apply_sobel_to_masks(segmentation_map.type(torch.float), kernel_size=kernel_size, sigma=sigma)
+    return sobel_masks
+
+
 if __name__ == "__main__":
     # Directory containing images
     image_dir = "scene_examples"
@@ -50,24 +69,8 @@ if __name__ == "__main__":
         # Apply Sobel edge detection
         sobel_img = apply_sobel(grayscale_img)
         
-        # Get Sobel edge points (strongest edges)
-        input_points = None  # Set to None to use default points
-        
-        # Process the image and input points
-        inputs = processor(images=img, input_points=input_points, return_tensors="pt").to(device)
-        
-        # Get segmentation map using SAM model
-        with torch.no_grad():
-            outputs = model(**inputs)
+        sobel_masks = infer_sam_edge(img, model, processor, device, input_points = None)
 
-        # Post-process the mask (resize it to the original image size)
-        masks = processor.image_processor.post_process_masks(
-            outputs.pred_masks, inputs["original_sizes"], inputs["reshaped_input_sizes"]
-        )
-
-        # Get the segmentation mask by applying argmax across the class dimension
-        segmentation_map = masks[0].cpu()  # Shape: [1, C, H, W]
-        sobel_masks = apply_sobel_to_masks(segmentation_map.type(torch.float), kernel_size=11, sigma=5.0)
         # Plot RGB image in the first row
         axes[0, i].imshow(img)
         axes[0, i].axis('off')  # Turn off axis
