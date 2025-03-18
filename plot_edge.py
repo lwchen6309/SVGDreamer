@@ -43,18 +43,20 @@ def apply_attention(edges, composition_type, sigma):
     attention = attention / attention.max()
     attention_weighted_edge = attention * edges
     return attention_weighted_edge, attention
-    
+
 
 if __name__ == '__main__':
     output_dir = "edge_results"
     os.makedirs(output_dir, exist_ok=True)
 
-    subdir = 'sam_edge'
+    subdir = 'sigma_75'
     image_paths = glob.glob(f"logs/great_wall/{subdir}/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     save_fig = False
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_name = "facebook/sam-vit-large"
+    # model_name = "facebook/sam-vit-large"
+    model_name = "jadechoghari/robustsam-vit-huge"
+
     model = SamModel.from_pretrained(model_name).to(device)
     processor = SamProcessor.from_pretrained(model_name)
 

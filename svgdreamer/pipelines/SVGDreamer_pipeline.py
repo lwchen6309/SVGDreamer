@@ -566,13 +566,13 @@ class SVGDreamerPipeline(ModelState):
             comp_guidance = None
             raise NotImplementedError(f"Composition type {composition_type} is not implemented.")
 
-        model_name = "facebook/sam-vit-large"
+        # model_name = "facebook/sam-vit-large"
+        model_name = self.x_cfg.sam_composition_loss.sam
         sam_model = SamModel.from_pretrained(model_name).to(self.device)
         sam_processor = SamProcessor.from_pretrained(model_name)
 
-
         L_reward = torch.tensor(0.)
-
+        
         self.step = 0  # reset global step
         self.print(f"Total Optimization Steps: {total_step}")
         with tqdm(initial=self.step, total=total_step, disable=not self.accelerator.is_main_process) as pbar:

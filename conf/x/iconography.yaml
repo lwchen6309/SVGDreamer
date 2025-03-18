@@ -196,3 +196,4 @@ sam_composition_loss:
   weight: 500.0
   kernel_size: 11
   sigma: 5.0
+  sam: jadechoghari/robustsam-vit-huge # facebook/sam-vit-large
