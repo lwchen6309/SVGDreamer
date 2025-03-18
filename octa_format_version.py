@@ -262,8 +262,9 @@ def convert_svg(input_svg, output_svg, required_paths=256):
 
 if __name__ == '__main__':
     # Load the SVG file
+    required_paths = 1024
     octa_dir = 'octa_examples'
-    output_dir = 'init_target/demo_1024'
+    output_dir = f'init_target/demo_{required_paths}'
     
     # shapes = ['circle', 'hexagon', 'rectangle', 'triangle']
     shapes = ['demo']
@@ -275,4 +276,4 @@ if __name__ == '__main__':
             print(filename)
             filename = filename.replace('.svg', f'_{shape}.svg')
             output_svg = os.path.join(output_dir, filename)
-            convert_svg(input_svg, output_svg, required_paths=2048)
+            convert_svg(input_svg, output_svg, required_paths=required_paths)
