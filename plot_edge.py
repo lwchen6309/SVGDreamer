@@ -49,7 +49,8 @@ if __name__ == '__main__':
     output_dir = "edge_results"
     os.makedirs(output_dir, exist_ok=True)
 
-    subdir = 'sigma_75'
+    # subdir = 'sam_robust'
+    subdir = 'sam_edge_robust'
     image_paths = glob.glob(f"logs/great_wall/{subdir}/SVGDreamer-*/sd*/all_particles.png")
     sorted_composition_types = ["golden_spiral", "pyramid", "diagonal", "l_shape"]
     save_fig = False
