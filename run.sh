@@ -1,10 +1,12 @@
-# prompt="A poster of the great wall, teal and orange color scheme, autumn colors"
-prompt="A great wall, teal and orange color scheme, autumn colors, ultra realistic"
-python svgdreamer.py x=iconography skip_sive=False "prompt='$prompt'" \
-    token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/real_great_wall' \
-    x.xing_loss.weight=0. x.num_paths=2048 +target_file="./init_target/demo_2048/example_0072_demo.svg" \
-    x.composition_loss.weight=0. x.sam_composition_loss.weight=0.
+prompt="A poster of the great wall, teal and orange color scheme, autumn colors"
+python svgdreamer.py x=iconography-s1 skip_sive=False "prompt='$prompt'" \
+    token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/great_wall'
 
+
+# python svgdreamer.py x=iconography skip_sive=False "prompt='$prompt'" \
+#     token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/great_wall' \
+#     x.xing_loss.weight=0. x.num_paths=2048 +target_file="./init_target/demo_2048/example_0072_demo.svg" \
+#     x.composition_loss.weight=0. x.sam_composition_loss.weight=0. x.vpsd.num_iter=2000
 
 # composition_type=("golden_spiral" "pyramid" "diagonal" "l_shape")
 # weight=5e2

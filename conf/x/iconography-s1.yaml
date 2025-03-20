@@ -182,3 +182,14 @@ reward_path: './checkpoint/ImageReward'
 xing_loss:
   use: False
   weight: 0.01
+
+composition_loss:
+  composition_type: 'golden_spiral' # 'golden_spiral', 'pyramid', 'diagonal', 'l_shape'
+  weight: 0.0
+  sigma: 50.0
+
+sam_composition_loss:
+  weight: 0.0
+  kernel_size: 11
+  sigma: 5.0
+  sam: jadechoghari/robustsam-vit-huge # facebook/sam-vit-large

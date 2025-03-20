@@ -57,44 +57,35 @@ def approximate_ellipse_six_segments(cx, cy, rx, ry):
 
     return bezier_points
 
+def approximate_ellipse_twelve_segments(cx, cy, rx, ry):
+    """Approximates an ellipse using exactly twelve cubic Bézier curves with Z to close the path."""
+    # k = 0.55191502449  # Bézier approximation constant for smoothness
+    k = 0.35191502449  # Bézier approximation constant for smoothness
 
-def remove_first_rectangle(svg_path, output_path):
-    """Removes the first large rectangle (background) from the SVG file based on 75% threshold."""
-    tree = ET.parse(svg_path)
-    root = tree.getroot()
-    
-    # Get SVG dimensions
-    svg_width = float(root.get("width", 0))
-    svg_height = float(root.get("height", 0))
+    # Angles for twelve-segment division (360° / 12 = 30° per segment)
+    angles = np.linspace(0, 2 * np.pi, 13)[:-1]  # 12 points, without repeating the start
 
-    # Define the 75% threshold
-    width_threshold = 0.75 * svg_width
-    height_threshold = 0.75 * svg_height
+    # Compute control points for each segment
+    bezier_points = []
+    for i in range(12):
+        theta1 = angles[i]
+        theta2 = angles[(i + 1) % 12]
 
-    # Iterate through elements and find the first large rectangle
-    for element in root.iter():
-        tag = element.tag.split("}")[-1]  # Extract the tag name without namespace
+        # Start and end points of the segment
+        x1, y1 = cx + rx * np.cos(theta1), cy + ry * np.sin(theta1)
+        x2, y2 = cx + rx * np.cos(theta2), cy + ry * np.sin(theta2)
 
-        if tag == "rect":
-            width = float(element.get("width", 0))
-            height = float(element.get("height", 0))
-            
-            # Check if this rect is likely the background (using 75% of SVG dimensions)
-            if width >= width_threshold and height >= height_threshold:
-                element.getparent().remove(element)
-                break  # Remove only the first rectangle
+        # Control points
+        dx1, dy1 = -np.sin(theta1) * k * rx, np.cos(theta1) * k * ry
+        dx2, dy2 = np.sin(theta2) * k * rx, -np.cos(theta2) * k * ry
 
-        elif tag == "path":
-            d = element.get("d", "")
-            if "L" in d and "Z" in d:  # Check for a closed rectangular path
-                commands = d.split()
-                if len(commands) == 10:  # Typical rectangular path with "M x y L x y L x y L x y Z"
-                    element.getparent().remove(element)
-                    break  # Remove only the first detected path-based rectangle
+        c1x, c1y = x1 + dx1, y1 + dy1
+        c2x, c2y = x2 + dx2, y2 + dy2
 
-    # Save the modified SVG
-    tree.write(output_path, encoding="utf-8", xml_declaration=True)
-    print(f"Background rectangle removed. Saved as {output_path}")
+        # Append to list
+        bezier_points.append((x1, y1, c1x, c1y, c2x, c2y, x2, y2))
+
+    return bezier_points
 
 
 # Function to convert supported SVG shapes into paths
@@ -135,7 +126,8 @@ def convert_to_path(element):
 
         # Approximate the ellipse/circle using six cubic Bézier curves
         bezier_segments = approximate_ellipse_six_segments(cx, cy, rx, ry)
-
+        # bezier_segments = approximate_ellipse_twelve_segments(cx, cy, rx, ry)
+        
         if transform:
             transformed_segments = []
             for (x1, y1, c1x, c1y, c2x, c2y, x2, y2) in bezier_segments:
