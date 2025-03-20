@@ -1,7 +1,8 @@
 prompt="A poster of the great wall, teal and orange color scheme, autumn colors"
-python svgdreamer.py x=iconography-s1 skip_sive=False "prompt='$prompt'" \
-    token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/great_wall'
-
+python svgdreamer.py x=iconography "prompt='$prompt'" result_path='./logs/great_wall' state.mprec='fp16' \
+    x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1 
+ 
+# python svgdreamer.py x=iconography "prompt='Sydney opera house. oil painting. by Van Gogh'" result_path='./logs/SydneyOperaHouse-OilPainting' state.mprec='fp16'
 
 # python svgdreamer.py x=iconography skip_sive=False "prompt='$prompt'" \
 #     token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/great_wall' \
