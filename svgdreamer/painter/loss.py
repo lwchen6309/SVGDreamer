@@ -54,7 +54,7 @@ def compute_sine_theta_vectorized(s1, s2):  # s1 and s2 aret two segments to be 
     return sine_theta
 
 
-def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
+def xing_loss_fn_origin(x_list, scale=1e-3):  # x[npoints, 2]
     loss = 0.
     # print(f"points_len: {len(x_list)}")
     for x in x_list:
@@ -85,19 +85,19 @@ def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
     return loss / (len(x_list))
 
 
-def xing_loss_fn_vec(x_list, scale=1e-3):  # x[npoints, 2]
+def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
     loss = 0.
     
     # Loop over the list of tensors in x_list
     for x in x_list:
-        N = x.size(0)
-        assert N % 3 == 0, f'The segment number ({N}) is not correct!'
+        n = x.size(0)
+        # assert n % 3 == 0, f'The segment number ({n}) is not correct!'
         
         # Prepare segments
-        x = torch.cat([x, x[0, :].unsqueeze(0)], dim=0)  # (N+1,2)
-        segments = torch.cat([x[:-1, :].unsqueeze(1), x[1:, :].unsqueeze(1)], dim=1)  # (N, start/end, 2)
+        x = torch.cat([x, x[0, :].unsqueeze(0)], dim=0)  # (n+1,2)
+        segments = torch.cat([x[:-1, :].unsqueeze(1), x[1:, :].unsqueeze(1)], dim=1)  # (n, start/end, 2)
         
-        segment_num = N // 3
+        segment_num = n // 3
         
         # Precompute all directions and angles
         cs1 = segments[::3]  # start control segments
@@ -215,3 +215,8 @@ def sam_composition_loss_fn(images, composition_attention, model, processor, inp
 
     # Return the computed dot product as the loss
     return dot_product
+
+
+if __name__ == '__main__':
+    x_list = [torch.randn(6, 2) for _ in range(10)]
+    torch.testing.assert_close(xing_loss_fn(x_list), xing_loss_fn_origin(x_list))
