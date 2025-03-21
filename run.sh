@@ -1,7 +1,7 @@
 prompt="A poster of the great wall, teal and orange color scheme, autumn colors"
 python svgdreamer.py x=iconography "prompt='$prompt'" result_path='./logs/great_wall' \
     x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1 \
-    x.xing_loss.weight=0. x.num_paths=512 +target_file="./init_target/demo/example_0072_demo.svg" 
+    x.xing_loss.weight=0 x.num_paths=512 +target_file="./init_target/demo/example_0072_demo.svg" 
 
 # python svgdreamer.py x=iconography "prompt='Sydney opera house. oil painting. by Van Gogh'" result_path='./logs/SydneyOperaHouse-OilPainting' \
 #         x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1

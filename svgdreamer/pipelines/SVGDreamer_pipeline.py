@@ -20,7 +20,7 @@ from torchvision import transforms
 from skimage.color import rgb2gray
 
 from svgdreamer.libs import ModelState, get_optimizer
-from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, xing_loss_fn_vec, composition_loss_fn, sam_composition_loss_fn, Painter, PainterOptimizer, \
+from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, composition_loss_fn, sam_composition_loss_fn, Painter, PainterOptimizer, \
     CosineWithWarmupLRLambda, VectorizedParticleSDSPipeline, DiffusionPipeline
 from svgdreamer.token2attn.attn_control import EmptyControl, AttentionStore
 from svgdreamer.token2attn.ptp_utils import view_images
