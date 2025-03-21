@@ -1,13 +1,10 @@
 prompt="A poster of the great wall, teal and orange color scheme, autumn colors"
-python svgdreamer.py x=iconography "prompt='$prompt'" result_path='./logs/great_wall' state.mprec='fp16' \
-    x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1 
- 
-# python svgdreamer.py x=iconography "prompt='Sydney opera house. oil painting. by Van Gogh'" result_path='./logs/SydneyOperaHouse-OilPainting' state.mprec='fp16'
+python svgdreamer.py x=iconography "prompt='$prompt'" result_path='./logs/great_wall' \
+    x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1 \
+    skip_sive=False x.num_paths=2048 +target_file="./init_target/demo_2048/example_0072_demo.svg"
 
-# python svgdreamer.py x=iconography skip_sive=False "prompt='$prompt'" \
-#     token_ind=4 x.vpsd.t_schedule='randint' result_path='./logs/great_wall' \
-#     x.xing_loss.weight=0. x.num_paths=2048 +target_file="./init_target/demo_2048/example_0072_demo.svg" \
-#     x.composition_loss.weight=0. x.sam_composition_loss.weight=0. x.vpsd.num_iter=2000
+# python svgdreamer.py x=iconography "prompt='Sydney opera house. oil painting. by Van Gogh'" result_path='./logs/SydneyOperaHouse-OilPainting' \
+#         x.vpsd.n_particle=1 x.vpsd.vsd_n_particle=1 x.vpsd.phi_n_particle=1
 
 # composition_type=("golden_spiral" "pyramid" "diagonal" "l_shape")
 # weight=5e2

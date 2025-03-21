@@ -37,7 +37,7 @@ def infer_sam_edge(images, model, processor, device, input_points = None, kernel
 
 if __name__ == "__main__":
     # Directory containing images
-    image_dir = "scene_examples"
+    image_dir = "wall_examples"
 
     # Get all image file names from the directory
     image_files = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png', '.jpeg'))]
@@ -48,6 +48,7 @@ if __name__ == "__main__":
     # Load pre-trained SAM model and processor
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model_name = "facebook/sam-vit-large"
+    # model_name = "jadechoghari/robustsam-vit-huge"
     model = SamModel.from_pretrained(model_name).to(device)
     processor = SamProcessor.from_pretrained(model_name)
     
