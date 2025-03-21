@@ -254,7 +254,7 @@ def convert_svg(input_svg, output_svg, required_paths=256):
 
 if __name__ == '__main__':
     # Load the SVG file
-    required_paths = 1024
+    required_paths = 2048
     octa_dir = 'octa_examples'
     output_dir = f'init_target/demo_{required_paths}'
     

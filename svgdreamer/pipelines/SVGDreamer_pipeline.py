@@ -20,7 +20,7 @@ from torchvision import transforms
 from skimage.color import rgb2gray
 
 from svgdreamer.libs import ModelState, get_optimizer
-from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, composition_loss_fn, sam_composition_loss_fn, Painter, PainterOptimizer, \
+from svgdreamer.painter import CompPainter, CompPainterOptimizer, xing_loss_fn, xing_loss_fn_vec, composition_loss_fn, sam_composition_loss_fn, Painter, PainterOptimizer, \
     CosineWithWarmupLRLambda, VectorizedParticleSDSPipeline, DiffusionPipeline
 from svgdreamer.token2attn.attn_control import EmptyControl, AttentionStore
 from svgdreamer.token2attn.ptp_utils import view_images
@@ -600,6 +600,7 @@ class SVGDreamerPipeline(ModelState):
                 if (self.style == "iconography" or self.x_cfg.xing_loss.use) and self.x_cfg.xing_loss.weight != 0.:
                     for r in renderers:
                         L_add += xing_loss_fn(r.get_point_parameters()) * self.x_cfg.xing_loss.weight
+                        
                 
                 # Composition Control
                 L_comp = torch.tensor(0., device=self.device)  # Initialize on the same device

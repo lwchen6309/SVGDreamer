@@ -26,12 +26,31 @@ def triangle_area(A, B, C):
     return out
 
 
-def compute_sine_theta(s1, s2):  # s1 and s2 aret two segments to be uswed
+def compute_sine_theta(s1, s2):  # s1 and s2 aret two segments to be used
     # s1, s2 (2, 2)
     v1 = s1[1, :] - s1[0, :]
     v2 = s2[1, :] - s2[0, :]
     # print(v1, v2)
     sine_theta = (v1[0] * v2[1] - v1[1] * v2[0]) / (torch.norm(v1) * torch.norm(v2))
+    return sine_theta
+
+
+def compute_sine_theta_vectorized(s1, s2):  # s1 and s2 aret two segments to be used
+    # s1 and s2 are tensors of shape (n, 2, 2) where n is the number of segment pairs
+    # v1 and v2 are the vector differences between the start and end points of each segment
+    v1 = s1[:, 1, :] - s1[:, 0, :]  # Shape (n, 2)
+    v2 = s2[:, 1, :] - s2[:, 0, :]  # Shape (n, 2)
+    
+    # Compute the cross product (determinant) for each segment pair
+    cross_product = v1[:, 0] * v2[:, 1] - v1[:, 1] * v2[:, 0]  # Shape (n,)
+    
+    # Compute the norms of the vectors
+    norm_v1 = torch.norm(v1, dim=1)  # Shape (n,)
+    norm_v2 = torch.norm(v2, dim=1)  # Shape (n,)
+    
+    # Calculate the sine of the angle between the vectors
+    sine_theta = cross_product / (norm_v1 * norm_v2)  # Shape (n,)
+    
     return sine_theta
 
 
@@ -50,6 +69,7 @@ def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
             cs1 = segments[i * 3, :, :]  # start control segs
             cs2 = segments[i * 3 + 1, :, :]  # middle control segs
             cs3 = segments[i * 3 + 2, :, :]  # end control segs
+            
             # print('the direction of the vectors:')
             # print(compute_sine_theta(cs1, cs2))
             direct = (compute_sine_theta(cs1, cs2) >= 0).float()
@@ -63,6 +83,39 @@ def xing_loss_fn(x_list, scale=1e-3):  # x[npoints, 2]
         loss += templ * scale  # area_loss * scale
 
     return loss / (len(x_list))
+
+
+def xing_loss_fn_vec(x_list, scale=1e-3):  # x[npoints, 2]
+    loss = 0.
+    
+    # Loop over the list of tensors in x_list
+    for x in x_list:
+        N = x.size(0)
+        assert N % 3 == 0, f'The segment number ({N}) is not correct!'
+        
+        # Prepare segments
+        x = torch.cat([x, x[0, :].unsqueeze(0)], dim=0)  # (N+1,2)
+        segments = torch.cat([x[:-1, :].unsqueeze(1), x[1:, :].unsqueeze(1)], dim=1)  # (N, start/end, 2)
+        
+        segment_num = N // 3
+        
+        # Precompute all directions and angles
+        cs1 = segments[::3]  # start control segments
+        cs2 = segments[1::3]  # middle control segments
+        cs3 = segments[2::3]  # end control segments
+        
+        # Calculate the sine of the angles in a vectorized manner
+        sina = compute_sine_theta_vectorized(cs1, cs3)
+        direct = (compute_sine_theta_vectorized(cs1, cs2) >= 0).float()
+        opst = 1 - direct  # another direction
+        
+        # Loss calculation without the inner loop
+        seg_loss = torch.sum(direct * torch.relu(-sina) + opst * torch.relu(sina)) / segment_num
+        
+        # Add weighted loss
+        loss += seg_loss * scale
+
+    return loss / len(x_list)
 
 
 def composition_loss_fn(images, composition_attention):
